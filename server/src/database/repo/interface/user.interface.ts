@@ -21,11 +21,6 @@ export interface IAuthResponse {
   user: Omit<IUser, "password">;
 }
 
-export interface ITokens {
-  accessToken: string;
-  refreshToken: string;
-}
-
 export interface IRegisterDTO {
   email: string;
   password: string;

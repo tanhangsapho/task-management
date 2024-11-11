@@ -2,6 +2,11 @@ import getConfig from "./config";
 
 const config = getConfig();
 export const authConfig = {
+  smtpHost: config.smtpHost,
+  smtpPort: config.smtpPort ? parseInt(config.smtpPort, 10) : undefined,
+  smtpApikeyPublic: config.smtpApikeyPublic,
+  smtpApikeyPrivate: config.smtpApikeyPrivate,
+  appUrl: config.appUrl,
   jwtSecret:
     config.jwt_secret ??
     (() => {

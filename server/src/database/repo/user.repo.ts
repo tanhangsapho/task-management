@@ -23,4 +23,13 @@ export class UserRepository {
       lastLogin: new Date(),
     });
   }
+  async findUserById(id: string): Promise<IUser | null> {
+    return User.findById(id).exec();
+  }
+  async updateById(
+    id: string,
+    updateData: Partial<IUser>
+  ): Promise<IUser | null> {
+    return User.findByIdAndUpdate(id, updateData, { new: true });
+  }
 }

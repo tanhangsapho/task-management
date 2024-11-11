@@ -18,6 +18,7 @@ function createConfig(configPath: string) {
     "COOKIE_SECRET_KEY",
     "SMTP_HOST",
     "SMTP_PORT",
+    "APP_URL",
     "SMTP_APIKEY_PUBLIC",
     "SMTP_APIKEY_PRIVATE",
     "JWT_SECRET",
@@ -34,6 +35,7 @@ function createConfig(configPath: string) {
   return {
     env: process.env.NODE_ENV,
     port: process.env.PORT,
+    appUrl: process.env.APP_URL,
     smtpHost: process.env.SMTP_HOST,
     smtpPort: process.env.SMTP_PORT,
     smtpApikeyPublic: process.env.SMTP_APIKEY_PUBLIC,
