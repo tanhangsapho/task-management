@@ -1,16 +1,34 @@
 import { injectable } from "tsyringe";
 import { IUser } from "./interface/user.interface";
-import { User } from "../models/user.model";
+import { IUserDocument, User } from "../models/user.model";
 
 @injectable()
 export class UserRepository {
   async findByEmail(
     email: string,
     includePassword: boolean = false
-  ): Promise<IUser | null> {
-    const query = User.findOne({ email });
-    if (includePassword) query.select("+password");
-    return query.exec();
+  ): Promise<IUserDocument | null> {
+    try {
+      const query = User.findOne({ email: email.toLowerCase().trim() });
+
+      if (includePassword) {
+        query.select("+password");
+      }
+
+      const user = await query.exec();
+
+      console.log("Repository findByEmail debug:", {
+        email,
+        userFound: !!user,
+        hasPassword: user?.password ? "Yes" : "No",
+        includePasswordParam: includePassword,
+      });
+
+      return user;
+    } catch (error) {
+      console.error("Error in findByEmail:", error);
+      throw error;
+    }
   }
   async findByGoogleId(googleId: string): Promise<IUser | null> {
     return User.findOne({ googleId }).exec();

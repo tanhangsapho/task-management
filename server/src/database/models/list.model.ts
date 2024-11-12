@@ -56,13 +56,4 @@ ListSchema.virtual("listCards", {
   foreignField: "listId",
 });
 
-// Middleware to populate cards when finding a list
-// ListSchema.pre(/^find/, function (next) {
-//   this.populate({
-//     path: "cards",
-//     select: "title position labels dueDate",
-//   });
-//   next();
-// });
-
 export const List = mongoose.model<IList>("List", ListSchema);
