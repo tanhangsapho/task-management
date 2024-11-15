@@ -20,6 +20,7 @@ const authController = container.resolve(AuthController);
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
+  message: "Too many login attempts from this IP, please try again later.",
 });
 router.use(limiter);
 
@@ -98,33 +99,26 @@ router.post("/login", limiter, authController.login.bind(authController));
 
 router.get(
   "/google",
+  limiter,
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { session: false }),
-  authController.handleGoogleCallback.bind(authController)
-);
-
-router.get(
-  "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
-
-router.get(
-  "/google/callback",
+  limiter,
   passport.authenticate("google", { session: false }),
   authController.handleGoogleCallback.bind(authController)
 );
 
 router.get(
   "/github",
+  limiter,
   passport.authenticate("github", { scope: ["user:email"] })
 );
 
 router.get(
   "/github/callback",
+  limiter,
   passport.authenticate("github", { session: false }),
   authController.handleGithubCallback.bind(authController)
 );
