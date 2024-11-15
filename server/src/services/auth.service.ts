@@ -4,6 +4,7 @@ import { authConfig } from "../utils/auth.config";
 import jwt from "jsonwebtoken";
 import {
   IAuthResponse,
+  IGithubProfile,
   IGoogleProfile,
   IRegisterDTO,
   ITokens,
@@ -16,6 +17,7 @@ import { EmailService } from "./email.service";
 import { registerSchema } from "../schemas/auth.schema";
 import bcrypt from "bcrypt";
 import { use } from "passport";
+import { error } from "console";
 @injectable()
 export class AuthService {
   constructor(
@@ -148,7 +150,7 @@ export class AuthService {
     }
   }
 
-  async loginWithGoogle(profile: IGoogleProfile): Promise<IAuthResponse> {
+  async loginWithGoogle(profile: IGoogleProfile): Promise<ITokens> {
     let user = await this.userRepo.findByGoogleId(profile.id);
 
     if (!user) {
@@ -156,17 +158,49 @@ export class AuthService {
         googleId: profile.id,
         email: profile.emails[0].value,
         name: profile.displayName,
+        photos: profile.photos[0].value,
+        isVerified: true,
         role: "user",
       });
     }
-
     await this.userRepo.updateLastLogin(user.id!);
-
-    return {
-      token: this.generateToken(user.id!, user.role),
-      user: this.sanitizeUser(user),
-    };
+    this.sanitizeUser(user);
+    return this.generateAuthTokens(user.id!, user.role);
   }
+  async loginWithGithub(profile: IGithubProfile): Promise<ITokens> {
+    try {
+      if (!profile.emails || profile.emails.length === 0) {
+        console.log("Profile has no emails:", profile);
+        throw new Error("GitHub account does not have a public email address.");
+      }
+
+      const email = profile.emails[0].value;
+
+      let user = await this.userRepo.findByGithubId(profile.id);
+      console.log(user);
+
+      if (!user) {
+        user = await this.userRepo.create({
+          githubId: profile.id,
+          email: email,
+          name: profile.displayName || "Unknown User", // Fallback name
+          photos:
+            profile.photos && profile.photos[0] ? profile.photos[0].value : "", // Fallback empty string for photos
+          isVerified: true,
+          role: "user",
+        });
+        console.log(user);
+      }
+
+      await this.userRepo.updateLastLogin(user.id!);
+      this.sanitizeUser(user);
+      return this.generateAuthTokens(user.id!, user.role);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
   async refreshToken(refreshToken: string): Promise<ITokens> {
     const refreshTokenDoc = await this.tokenRepo.findRefreshToken(refreshToken);
     if (!refreshTokenDoc) {

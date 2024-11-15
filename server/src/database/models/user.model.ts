@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema<IUserDocument>(
       minlength: 8,
       select: false,
     },
+    photos: {
+      type: String,
+    },
+    githubId: String,
     googleId: String,
     name: String,
     role: {

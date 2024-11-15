@@ -2,7 +2,6 @@
 
 import { Response } from "express";
 import getConfig from "../utils/config";
-import { authConfig } from "../utils/auth.config";
 
 export function setAuthCookies(
   res: Response,

@@ -33,6 +33,20 @@ export class UserRepository {
   async findByGoogleId(googleId: string): Promise<IUser | null> {
     return User.findOne({ googleId }).exec();
   }
+  async findByGithubId(githubId: string): Promise<IUser | null> {
+    return User.findOne({ githubId }).exec();
+  }
+  async update(
+    id: string,
+    data: Partial<{
+      picture: string;
+    }>
+  ): Promise<IUser | null> {
+    const user = await User.findByIdAndUpdate(id, data, {
+      new: true,
+    });
+    return user;
+  }
   async create(userData: Partial<IUser>): Promise<IUser> {
     return User.create(userData);
   }

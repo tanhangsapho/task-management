@@ -4,7 +4,9 @@ export interface IUser {
   id?: string;
   email: string;
   password?: string;
+  githubId?: string;
   googleId?: string;
+  photos?: string;
   name: string;
   isVerified: boolean;
   role: string;
@@ -15,6 +17,13 @@ export interface IGoogleProfile {
   id: string;
   displayName: string;
   emails: Array<{ value: string; verified: boolean }>;
+  photos: Array<{ value: string }>;
+}
+export interface IGithubProfile {
+  id: string;
+  displayName: string;
+  emails: Array<{ value: string; verified: boolean }>;
+  photos: Array<{ value: string }>;
 }
 export interface IAuthResponse {
   token: string;

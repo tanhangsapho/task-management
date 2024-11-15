@@ -1,7 +1,10 @@
 import { inject, injectable } from "tsyringe";
 import { AuthService } from "../services/auth.service";
 import e, { Request, Response } from "express";
-import { IGoogleProfile } from "../database/repo/interface/user.interface";
+import {
+  IGithubProfile,
+  IGoogleProfile,
+} from "../database/repo/interface/user.interface";
 import getConfig from "../utils/config";
 import { clearAuthCookies, setAuthCookies } from "../utils/cookie";
 
@@ -80,11 +83,33 @@ export class AuthController {
       if (!req.user || typeof req.user === "string") {
         res.status(400).json({ message: "Invalid Google profile data" });
       }
-      await this.authService.loginWithGoogle(req.user as IGoogleProfile);
-      res.redirect(`https://www.google.com/`);
+      const tokens = await this.authService.loginWithGoogle(
+        req.user as IGoogleProfile
+      );
+      setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+
+      res.redirect(`${getConfig().frontend_Url}`);
     } catch (error: unknown | any) {
       console.log(error.message);
       res.status(500).json({ message: "Authentication failed" });
+    }
+  }
+  async handleGithubCallback(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.user || typeof req.user === "string") {
+        res.status(400).json({ message: "Invalid Google profile data" });
+      }
+      const tokens = await this.authService.loginWithGithub(
+        req.user as IGithubProfile
+      );
+      setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+
+      res.redirect(`${getConfig().frontend_Url}`);
+    } catch (error: unknown | any) {
+      console.log(error.message);
+      res
+        .status(500)
+        .json({ message: `Authentication failed ${error.message}` });
     }
   }
   async logout(req: Request, res: Response): Promise<void> {
