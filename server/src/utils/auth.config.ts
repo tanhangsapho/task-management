@@ -28,6 +28,21 @@ export const authConfig = {
     (() => {
       throw new Error("Google Callback URL is missing");
     })(),
+  githubClientId:
+    config.githubClientId ??
+    (() => {
+      throw new Error("Google Client ID is missing");
+    })(),
+  githubClientSecret:
+    config.githubClientSecret ??
+    (() => {
+      throw new Error("Google Client Secret is missing");
+    })(),
+  githubCallbackURL:
+    config.githubCallBack ??
+    (() => {
+      throw new Error("Google Callback URL is missing");
+    })(),
   sessionSecret:
     config.cookieSecretKey ??
     (() => {

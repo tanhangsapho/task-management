@@ -7,7 +7,7 @@ export class TokenRepository {
   async createRefreshToken(userId: string): Promise<IRefreshToken> {
     const token = crypto.randomBytes(40).toString("hex");
     const expires = new Date();
-    expires.setDate(expires.getDate() + 30); // 30 days expiration
+    expires.setDate(expires.getDate() + 7);
 
     return RefreshToken.create({
       userId,

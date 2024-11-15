@@ -4,6 +4,7 @@ import { authConfig } from "../utils/auth.config";
 import jwt from "jsonwebtoken";
 import {
   IAuthResponse,
+  IGithubProfile,
   IGoogleProfile,
   IRegisterDTO,
   ITokens,
@@ -16,6 +17,7 @@ import { EmailService } from "./email.service";
 import { registerSchema } from "../schemas/auth.schema";
 import bcrypt from "bcrypt";
 import { use } from "passport";
+import { error } from "console";
 @injectable()
 export class AuthService {
   constructor(
@@ -46,25 +48,34 @@ export class AuthService {
   }
 
   async register(userData: IRegisterDTO): Promise<ITokens> {
-    const validatedData = registerSchema.parse(userData);
-    console.log("Input password:", userData.password); // Input password from the login function
-    const existingUser = await this.userRepo.findByEmail(validatedData.email);
-    if (existingUser) {
-      throw new Error("Email already registered");
+    try {
+      const validatedData = registerSchema.parse(userData);
+
+      const existingUser = await this.userRepo.findByEmail(validatedData.email);
+      if (existingUser) {
+        throw new Error("Email already registered");
+      }
+      const hashedPassword = await bcrypt.hash(validatedData.password, 12);
+      const user = await this.userRepo.create({
+        ...validatedData,
+        password: hashedPassword,
+        role: "user",
+        isVerified: false,
+      });
+
+      const verificationToken = await this.verificationRepo.createToken(
+        user.id!
+      );
+      await this.emailService.sendVerificationEmail(
+        user.email,
+        verificationToken.token
+      );
+
+      return this.generateAuthTokens(user.id!, user.role);
+    } catch (error) {
+      console.error("Registration error:", error);
+      throw error;
     }
-    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
-    const user = await this.userRepo.create({
-      ...validatedData,
-      password: hashedPassword,
-      role: "user",
-      isVerified: false,
-    });
-    const verificationToken = await this.verificationRepo.createToken(user.id!);
-    await this.emailService.sendVerificationEmail(
-      user.email,
-      verificationToken.token
-    );
-    return this.generateAuthTokens(user.id!, user.role);
   }
 
   async verifyEmail(token: string): Promise<ITokens> {
@@ -100,42 +111,46 @@ export class AuthService {
     email: string,
     password: string
   ): Promise<ITokens> {
-    const user = await this.userRepo.findByEmail(email, true);
-    if (!(user instanceof User)) {
-      throw new Error("Invalid user"); // Ensure user is a Mongoose model
+    try {
+      // Find user and explicitly select password
+      const user = await this.userRepo.findByEmail(email, true);
+
+      console.log("Login attempt debug:", {
+        userFound: !!user,
+        hasPassword: user?.password ? "Yes" : "No",
+        isVerified: user?.isVerified,
+      });
+
+      if (!user || !(user instanceof User)) {
+        throw new Error("Invalid credentials");
+      }
+
+      if (!user.isVerified) {
+        throw new Error("Please verify your email before logging in");
+      }
+
+      // Ensure password exists in the retrieved user document
+      if (!user.password) {
+        console.error("User found but password field is missing");
+        throw new Error("Invalid credentials");
+      }
+
+      const isPasswordValid = await user.comparePassword(password);
+
+      if (!isPasswordValid) {
+        console.log("Password validation failed for user:", email);
+        throw new Error("Invalid credentials");
+      }
+
+      await this.userRepo.updateLastLogin(user.id!);
+      return this.generateAuthTokens(user.id!, user.role);
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
     }
-
-    console.log("Input password:", password); // Log input password
-    console.log("Stored password hash:", user.password); // Log stored hash password
-    console.log("Found user:", user);
-
-    if (!user) {
-      console.log("No user found for email:", email);
-      throw new Error("Invalid credentials");
-    }
-
-    if (!user.isVerified) {
-      console.log("User not verified");
-      throw new Error("Please verify your email before logging in");
-    }
-
-    if (!user.password) {
-      console.log("User found but has no password (might be Google account)");
-      throw new Error("Invalid credentials");
-    }
-
-    const isPasswordValid = await user.comparePassword(password.trim());
-    if (!isPasswordValid) {
-      console.log("Password validation failed");
-      throw new Error("Invalid credentials");
-    }
-
-    await this.userRepo.updateLastLogin(user.id!);
-
-    return this.generateAuthTokens(user.id!, user.role);
   }
 
-  async loginWithGoogle(profile: IGoogleProfile): Promise<IAuthResponse> {
+  async loginWithGoogle(profile: IGoogleProfile): Promise<ITokens> {
     let user = await this.userRepo.findByGoogleId(profile.id);
 
     if (!user) {
@@ -143,17 +158,49 @@ export class AuthService {
         googleId: profile.id,
         email: profile.emails[0].value,
         name: profile.displayName,
+        photos: profile.photos[0].value,
+        isVerified: true,
         role: "user",
       });
     }
-
     await this.userRepo.updateLastLogin(user.id!);
-
-    return {
-      token: this.generateToken(user.id!, user.role),
-      user: this.sanitizeUser(user),
-    };
+    this.sanitizeUser(user);
+    return this.generateAuthTokens(user.id!, user.role);
   }
+  async loginWithGithub(profile: IGithubProfile): Promise<ITokens> {
+    try {
+      if (!profile.emails || profile.emails.length === 0) {
+        console.log("Profile has no emails:", profile);
+        throw new Error("GitHub account does not have a public email address.");
+      }
+
+      const email = profile.emails[0].value;
+
+      let user = await this.userRepo.findByGithubId(profile.id);
+      console.log(user);
+
+      if (!user) {
+        user = await this.userRepo.create({
+          githubId: profile.id,
+          email: email,
+          name: profile.displayName || "Unknown User", // Fallback name
+          photos:
+            profile.photos && profile.photos[0] ? profile.photos[0].value : "", // Fallback empty string for photos
+          isVerified: true,
+          role: "user",
+        });
+        console.log(user);
+      }
+
+      await this.userRepo.updateLastLogin(user.id!);
+      this.sanitizeUser(user);
+      return this.generateAuthTokens(user.id!, user.role);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
   async refreshToken(refreshToken: string): Promise<ITokens> {
     const refreshTokenDoc = await this.tokenRepo.findRefreshToken(refreshToken);
     if (!refreshTokenDoc) {
