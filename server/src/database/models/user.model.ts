@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema<IUserDocument>(
     name: String,
     role: {
       type: String,
-      enum: ["user", "admin"],
+      enum: ["user", "admin", "viewer"],
       default: "user",
     },
     isVerified: {
