@@ -10,8 +10,10 @@ export class BoardController {
   async createBoard(req: Request, res: Response): Promise<void> {
     try {
       const board = await this.boardService.createBoard(req.body);
+      console.log("hello");
       res.status(201).json({ message: "Create Successfully ", data: board });
-    } catch (error) {
+    } catch (error: unknown | any) {
+      console.log(error.message);
       throw error;
     }
   }

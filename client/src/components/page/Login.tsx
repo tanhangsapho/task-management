@@ -2,7 +2,6 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Github } from "lucide-react";
 import { githubAuth, googleAuth } from "@/lib/api/auth";
 

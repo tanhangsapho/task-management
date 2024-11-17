@@ -8,7 +8,8 @@ export class BoardService {
   async createBoard(boardData: IBoard): Promise<IBoard> {
     try {
       return await this.boardRepo.createBoard(boardData);
-    } catch (error) {
+    } catch (error: any | unknown) {
+      console.log("error", error.message);
       throw error;
     }
   }

@@ -38,7 +38,7 @@ const BoardSchema: Schema = new mongoose.Schema(
     ],
     background: {
       type: String,
-      default: "#0079bf", // Default Trello blue color
+      default: "#0079bf",
     },
     isArchived: {
       type: Boolean,

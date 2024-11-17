@@ -1,4 +1,5 @@
 require("dotenv").config();
+export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export interface AuthResponse {
   token: string;
@@ -9,8 +10,6 @@ export interface AuthResponse {
     picture?: string;
   };
 }
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const googleAuth = {
   // Initialize Google login
