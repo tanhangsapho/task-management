@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
 
-export interface IUser {
-  id?: string;
+export interface IUser extends Document {
+  userId?: string;
   email: string;
   password?: string;
   githubId?: string;
@@ -13,18 +13,21 @@ export interface IUser {
   lastLogin: Date;
   comparePassword?(password: string): Promise<boolean>;
 }
+
 export interface IGoogleProfile {
   id: string;
   displayName: string;
-  emails: Array<{ value: string; verified: boolean }>;
-  photos: Array<{ value: string }>;
+  emails: Array<{ value: string }>;
+  photos?: Array<{ value: string }>; // Define `photos` correctly as an optional array
 }
+
 export interface IGithubProfile {
   id: string;
-  displayName: string;
-  emails: Array<{ value: string; verified: boolean }>;
-  photos: Array<{ value: string }>;
+  username: string;
+  photos?: Array<{ value: string }>;
+  emails: Array<{ value: string }>;
 }
+
 export interface IAuthResponse {
   token: string;
   user: Omit<IUser, "password">;

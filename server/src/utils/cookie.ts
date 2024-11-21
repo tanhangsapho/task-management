@@ -13,7 +13,7 @@ export function setAuthCookies(
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure,
-    sameSite: "strict",
+    sameSite: secure ? "strict" : "lax",
     maxAge: 1800 * 1000,
   });
 

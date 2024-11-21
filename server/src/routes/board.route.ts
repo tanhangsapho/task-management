@@ -1,9 +1,13 @@
 import express from "express";
 import { container } from "tsyringe";
 import { BoardController } from "../controllers/board.controller";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
 const boardRouter = express.Router();
 const boardController = container.resolve(BoardController);
+
+boardRouter.use(authMiddleware);
+
 boardRouter.post("/", boardController.createBoard.bind(boardController));
 boardRouter.get(
   "/user/:id",

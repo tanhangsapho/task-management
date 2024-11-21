@@ -27,6 +27,7 @@ function createConfig(configPath: string) {
     "SMTP_APIKEY_PUBLIC",
     "SMTP_APIKEY_PRIVATE",
     "JWT_SECRET",
+    "FRONTEND",
   ];
   const missingConfig = requiredConfig.filter((key) => !process.env[key]);
 
@@ -40,6 +41,7 @@ function createConfig(configPath: string) {
   return {
     env: process.env.NODE_ENV,
     port: process.env.PORT,
+    frontend: process.env.FRONTEND,
     appUrl: process.env.APP_URL,
     githubClientId: process.env.GITHUB_CLIENTID,
     githubClientSecret: process.env.GITHUB_CLIENTSECRET,

@@ -10,7 +10,7 @@ interface User {
 }
 
 interface AuthState {
-  token: string | null;
+  accessToken: string | null;
   user: User | null;
   setAuth: (auth: AuthResponse | null) => void;
   logout: () => void;
@@ -20,18 +20,18 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      token: null,
+      accessToken: null,
       user: null,
       isAuthenticated: false,
       setAuth: (auth) =>
         set({
-          token: auth?.token || null,
+          accessToken: auth?.accessToken || null, // Use `accessToken`
           user: auth?.user || null,
-          isAuthenticated: !!auth?.token,
+          isAuthenticated: !!auth?.accessToken,
         }),
       logout: () =>
         set({
-          token: null,
+          accessToken: null,
           user: null,
           isAuthenticated: false,
         }),

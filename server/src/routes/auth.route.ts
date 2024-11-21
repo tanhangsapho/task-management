@@ -10,13 +10,10 @@ import { container } from "tsyringe";
 import { AuthController } from "../controllers/auth.controller";
 import rateLimit from "express-rate-limit";
 import { authConfig } from "../utils/auth.config";
-import { authMiddleware } from "../middlewares/auth.middleware";
-import { IGithubProfile } from "../database/repo/interface/user.interface";
 import axios from "axios";
 
 const router = express.Router();
 const authController = container.resolve(AuthController);
-
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -33,8 +30,6 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        console.log("GitHub Profile:", profile);
-
         return done(null, profile);
       } catch (error) {
         return done(error as Error);
@@ -83,19 +78,6 @@ passport.use(
     }
   )
 );
-router.post("/register", authController.register.bind(authController));
-router.post(
-  "/refresh-token",
-  limiter,
-  authController.refreshToken.bind(authController)
-);
-router.post(
-  "/logout",
-  authMiddleware,
-  authController.logout.bind(authController)
-);
-router.get("/verify-email", authController.verifyEmail.bind(authController));
-router.post("/login", limiter, authController.login.bind(authController));
 
 router.get(
   "/google",
@@ -124,3 +106,17 @@ router.get(
 );
 
 export { router as authRoutes };
+
+// router.post("/register", authController.register.bind(authController));
+// router.post(
+//   "/refresh-token",
+//   limiter,
+//   authController.refreshToken.bind(authController)
+// );
+// router.post(
+//   "/logout",
+//   authMiddleware,
+//   authController.logout.bind(authController)
+// );
+// router.get("/verify-email", authController.verifyEmail.bind(authController));
+// router.post("/login", limiter, authController.login.bind(authController));

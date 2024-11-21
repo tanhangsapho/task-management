@@ -23,8 +23,9 @@ const userSchema = new mongoose.Schema<IUserDocument>(
     photos: {
       type: String,
     },
-    githubId: String,
-    googleId: String,
+    googleId: { type: String, unique: true, sparse: true },
+    githubId: { type: String, unique: true, sparse: true },
+
     name: String,
     role: {
       type: String,
@@ -39,8 +40,21 @@ const userSchema = new mongoose.Schema<IUserDocument>(
   },
   {
     timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: function (doc, ret) {
+        ret.id = ret._id.toString();
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      },
+    },
   }
 );
+
+userSchema.virtual("userId").get(function () {
+  return this._id.toString();
+});
 
 userSchema.methods.comparePassword = async function (
   candidatePassword: string

@@ -41,13 +41,13 @@ export class UserRepository {
     data: Partial<{
       picture: string;
     }>
-  ): Promise<IUser | null> {
+  ): Promise<IUserDocument | null> {
     const user = await User.findByIdAndUpdate(id, data, {
       new: true,
     });
     return user;
   }
-  async create(userData: Partial<IUser>): Promise<IUser> {
+  async create(userData: Partial<IUser>): Promise<IUserDocument> {
     return User.create(userData);
   }
   async updateLastLogin(userId: string): Promise<void> {
@@ -55,12 +55,12 @@ export class UserRepository {
       lastLogin: new Date(),
     });
   }
-  async findUserById(id: string): Promise<IUser | null> {
-    return User.findById(id).exec();
+  async getCurrentUser(id: string): Promise<IUserDocument | null> {
+    return User.findById(id).exec(); // Use findById for querying `_id`
   }
   async updateById(
     id: string,
-    updateData: Partial<IUser>
+    updateData: Partial<IUserDocument>
   ): Promise<IUser | null> {
     return User.findByIdAndUpdate(id, updateData, { new: true });
   }

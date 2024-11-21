@@ -7,7 +7,7 @@ export interface IBoard extends Document {
   lists: Schema.Types.ObjectId[];
   background?: string;
   isArchived: boolean;
-  members: Schema.Types.ObjectId[];
+  members?: Schema.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }

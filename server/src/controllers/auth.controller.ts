@@ -11,37 +11,54 @@ import { clearAuthCookies, setAuthCookies } from "../utils/cookie";
 @injectable()
 export class AuthController {
   constructor(@inject(AuthService) private readonly authService: AuthService) {}
-  async login(req: Request, res: Response): Promise<void> {
-    try {
-      const { email, password } = req.body;
-      const user = await this.authService.loginWithCredentials(email, password);
-      setAuthCookies(res, user.accessToken, user.refreshToken);
-      res.status(200).json({ message: "Login Succesfully" });
-    } catch (error: unknown | any) {
-      res.status(401).json({ message: error.message });
-    }
-  }
-  async register(req: Request, res: Response): Promise<void> {
-    try {
-      const { email, name, password } = req.body;
-      await this.authService.register({ email, password, name });
+  // async login(req: Request, res: Response): Promise<void> {
+  //   try {
+  //     const { email, password } = req.body;
+  //     const user = await this.authService.loginWithCredentials(email, password);
+  //     setAuthCookies(res, user.accessToken, user.refreshToken);
+  //     res.status(200).json({ message: "Login Succesfully" });
+  //   } catch (error: unknown | any) {
+  //     res.status(401).json({ message: error.message });
+  //   }
+  // }
+  // async register(req: Request, res: Response): Promise<void> {
+  //   try {
+  //     const { email, name, password } = req.body;
+  //     await this.authService.register({ email, password, name });
 
-      res.status(201).json({
-        message:
-          "Registration successful. Please check your email to verify your account.",
-      });
-    } catch (error: unknown | any) {
-      console.error("Registration error:", error);
-      if (error.message?.includes("SSL routines")) {
-        res.status(500).json({
-          message: "Server configuration error. Please contact support.",
-          error: "Email service connection failed",
-        });
-      } else {
-        res.status(400).json({ message: error.message });
-      }
-    }
-  }
+  //     res.status(201).json({
+  //       message:
+  //         "Registration successful. Please check your email to verify your account.",
+  //     });
+  //   } catch (error: unknown | any) {
+  //     console.error("Registration error:", error);
+  //     if (error.message?.includes("SSL routines")) {
+  //       res.status(500).json({
+  //         message: "Server configuration error. Please contact support.",
+  //         error: "Email service connection failed",
+  //       });
+  //     } else {
+  //       res.status(400).json({ message: error.message });
+  //     }
+  //   }
+  // }
+  // async verifyEmail(req: Request, res: Response): Promise<void> {
+  //   try {
+  //     const { token } = req.query;
+  //     if (!token || typeof token !== "string") {
+  //       throw new Error("Invalid verification token");
+  //     }
+
+  //     await this.authService.verifyEmail(token);
+  //     // setAuthCookies(res, tokens.accessToken);
+
+  //     res.json({
+  //       message: "Email verified successfully",
+  //     });
+  //   } catch (error: unknown | any) {
+  //     res.status(400).json({ message: error.message });
+  //   }
+  // }
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
       const { refreshToken } = req.cookies;
@@ -61,23 +78,7 @@ export class AuthController {
       });
     }
   }
-  async verifyEmail(req: Request, res: Response): Promise<void> {
-    try {
-      const { token } = req.query;
-      if (!token || typeof token !== "string") {
-        throw new Error("Invalid verification token");
-      }
 
-      await this.authService.verifyEmail(token);
-      // setAuthCookies(res, tokens.accessToken);
-
-      res.json({
-        message: "Email verified successfully",
-      });
-    } catch (error: unknown | any) {
-      res.status(400).json({ message: error.message });
-    }
-  }
   async handleGoogleCallback(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user || typeof req.user === "string") {
@@ -99,9 +100,7 @@ export class AuthController {
       if (!req.user || typeof req.user === "string") {
         res.status(400).json({ message: "Invalid Google profile data" });
       }
-      const tokens = await this.authService.loginWithGithub(
-        req.user as IGithubProfile
-      );
+      const tokens = await this.authService.loginWithGithub(req.user as any);
       setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
 
       res.redirect(`${getConfig().frontend_Url}`);
@@ -112,6 +111,7 @@ export class AuthController {
         .json({ message: `Authentication failed ${error.message}` });
     }
   }
+
   async logout(req: Request, res: Response): Promise<void> {
     try {
       const { refreshToken } = req.cookies;

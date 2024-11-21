@@ -8,15 +8,19 @@ import session from "express-session";
 import cors from "cors";
 import getConfig from "./utils/config";
 import helmet from "helmet";
+import router from "./routes/profile";
+import cookieParser from "cookie-parser";
 export const app = express();
 
 app.use(express.json());
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: process.env.FRONTEND,
     credentials: true,
   })
 );
+app.use(passport.initialize());
+app.use(cookieParser());
 
 app.use(helmet());
 app.use(
@@ -32,6 +36,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(express.urlencoded({ extended: true }));
+app.use("/api/user", router);
 app.use("/api/auth", authRoutes);
 app.use("/api/board", boardRouter);
 

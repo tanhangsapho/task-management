@@ -1,6 +1,17 @@
-import { NextFunction, Response, Request } from "express";
+import { NextFunction, Request, Response } from "express";
 import { authConfig } from "../utils/auth.config";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import {
+  IGithubProfile,
+  IGoogleProfile,
+} from "../database/repo/interface/user.interface";
+declare global {
+  namespace Express {
+    interface Request {
+      user?: IGoogleProfile | IGithubProfile;
+    }
+  }
+}
 
 export const authMiddleware = (
   req: Request,
@@ -14,8 +25,20 @@ export const authMiddleware = (
       res.status(401).json({ message: "Authentication required" });
       return;
     }
-    const decoded = jwt.verify(token, authConfig.jwtSecret!) as JwtPayload;
-    req.user = decoded;
+
+    // Decode the token to extract the userId
+    const decoded = jwt.verify(token, authConfig.jwtSecret!) as {
+      id: string;
+    };
+    if (req.user) {
+      req.user.id = decoded.id;
+    } else {
+      res
+        .status(401)
+        .json({ message: "Authentication failed: no user profile" });
+      return;
+    }
+
     next();
   } catch (error) {
     res.status(401).json({ message: "Invalid token" });

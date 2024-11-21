@@ -1,25 +1,22 @@
-"use client";
-import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Github } from "lucide-react";
-import { githubAuth, googleAuth } from "@/lib/api/auth";
+import { Button } from "../ui/button";
+import { Card } from "../ui/card";
+import { useAuth } from "@/context/AuthContext";
 
 interface LoginProps {
-  onEmailSubmit?: (email: string) => void;
-  onGoogleLogin?: () => void;
-  onGithubLogin?: () => void;
-  onSignUp?: () => void;
   logoText?: string;
 }
+export function Login({ logoText = "TM" }: LoginProps) {
+  const { login } = useAuth();
 
-export function Login({
-  onEmailSubmit,
-  onGoogleLogin,
-  onGithubLogin,
-  onSignUp,
-  logoText = "TM",
-}: LoginProps) {
+  const handleGoogleLogin = () => {
+    login("google");
+  };
+
+  const handleGithubLogin = () => {
+    login("github");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-white">
       <Card className="w-full max-w-md bg-white border-gray-200 p-8 shadow-lg">
@@ -38,36 +35,11 @@ export function Login({
             </p>
           </div>
 
-          {/* Email Input Form */}
-          {/* <form onSubmit={handleEmailSubmit} className="w-full space-y-4">
-            <Input
-              type="email"
-              placeholder="Your Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="bg-white border-gray-200 text-gray-900 h-12 focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-            <Button
-              type="submit"
-              className="w-full bg-blue-500 text-white hover:bg-blue-600 h-12"
-            >
-              Continue with Email
-            </Button>
-          </form> */}
-
-          {/* Divider */}
-          {/* <div className="w-full flex items-center gap-4">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-gray-500 text-sm">or</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div> */}
-
           {/* Social Login Buttons */}
           <div className="w-full space-y-3">
             {/* Google Login */}
             <Button
-              onClick={() => googleAuth.signInWithGoogle()}
+              onClick={handleGoogleLogin}
               variant="outline"
               className="w-full bg-white border-gray-200 hover:bg-gray-50 text-gray-700"
             >
@@ -96,7 +68,7 @@ export function Login({
 
             {/* GitHub Login */}
             <Button
-              onClick={() => githubAuth.signInWithGithub()}
+              onClick={handleGithubLogin}
               variant="outline"
               className="w-full bg-white border-gray-200 hover:bg-gray-50 text-gray-700"
             >
@@ -106,17 +78,6 @@ export function Login({
               </div>
             </Button>
           </div>
-
-          {/* Sign Up Link */}
-          {/* <div className="text-gray-500">
-            Don't have an account?{" "}
-            <button
-              onClick={onSignUp}
-              className="text-blue-500 hover:underline"
-            >
-              Sign Up
-            </button>
-          </div> */}
         </div>
       </Card>
     </div>
