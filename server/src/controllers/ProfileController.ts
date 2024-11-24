@@ -12,7 +12,10 @@ export class ProfileController {
         return;
       }
 
-      const userId = req.user.id; // Assuming `req.user.id` is set by your middleware
+      const userId = req.user.userId; // Assuming `req.user.id` is set by your middleware
+      if (!userId) {
+        throw Error("User Not Found");
+      }
       const userProfile = await this.authService.getCurrentUser(userId); // Fetch user profile if needed
 
       res.json({

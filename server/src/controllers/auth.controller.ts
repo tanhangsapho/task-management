@@ -84,9 +84,7 @@ export class AuthController {
       if (!req.user || typeof req.user === "string") {
         res.status(400).json({ message: "Invalid Google profile data" });
       }
-      const tokens = await this.authService.loginWithGoogle(
-        req.user as IGoogleProfile
-      );
+      const tokens = await this.authService.loginWithGoogle(req.user as any);
       setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
 
       res.redirect(`${getConfig().frontend_Url}`);
@@ -120,7 +118,6 @@ export class AuthController {
         res.status(401).json({ message: "Refresh token is required" });
       }
 
-      // Blacklist the refresh token to prevent further use
       await this.authService.logout(refreshToken);
 
       clearAuthCookies(res);

@@ -11,15 +11,16 @@ import { AuthController } from "../controllers/auth.controller";
 import rateLimit from "express-rate-limit";
 import { authConfig } from "../utils/auth.config";
 import axios from "axios";
+import { IGoogleProfile } from "../database/repo/interface/user.interface";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
 const router = express.Router();
 const authController = container.resolve(AuthController);
-const limiter = rateLimit({
+export const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   message: "Too many login attempts from this IP, please try again later.",
 });
-router.use(limiter);
 
 passport.use(
   new GoogleStrategy(
@@ -27,10 +28,17 @@ passport.use(
       clientID: authConfig.googleClientId!,
       clientSecret: authConfig.googleClientSecret!,
       callbackURL: authConfig.callbackURL,
+      scope: ["profile", "email"],
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        return done(null, profile);
+        const googleProfile: IGoogleProfile = {
+          id: profile.id,
+          displayName: profile.displayName,
+          emails: profile.emails || [],
+          photos: profile.photos,
+        };
+        return done(null, googleProfile);
       } catch (error) {
         return done(error as Error);
       }
@@ -98,6 +106,16 @@ router.get(
   passport.authenticate("github", { scope: ["user:email"] })
 );
 
+router.post(
+  "/refresh-token",
+  limiter,
+  authController.refreshToken.bind(authController)
+);
+router.post(
+  "/logout",
+  authMiddleware,
+  authController.logout.bind(authController)
+);
 router.get(
   "/github/callback",
   limiter,
@@ -108,15 +126,6 @@ router.get(
 export { router as authRoutes };
 
 // router.post("/register", authController.register.bind(authController));
-// router.post(
-//   "/refresh-token",
-//   limiter,
-//   authController.refreshToken.bind(authController)
-// );
-// router.post(
-//   "/logout",
-//   authMiddleware,
-//   authController.logout.bind(authController)
-// );
+
 // router.get("/verify-email", authController.verifyEmail.bind(authController));
 // router.post("/login", limiter, authController.login.bind(authController));

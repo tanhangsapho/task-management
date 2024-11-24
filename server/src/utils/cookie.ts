@@ -13,15 +13,15 @@ export function setAuthCookies(
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure,
-    sameSite: secure ? "strict" : "lax",
-    maxAge: 1800 * 1000,
+    sameSite: "strict", // Adjust as needed for cross-origin setups
+    maxAge: 15 * 60 * 1000,
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure,
     sameSite: "strict",
-    maxAge: 604800 * 1000,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }
 

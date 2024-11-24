@@ -11,10 +11,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { fetchBoards } from "@/utils/endpoint";
-import { API_ENDPOINTS } from "@/lib/api/board";
 import axios from "axios";
 import { Textarea } from "./textarea";
+import { boardsApi } from "@/lib/api/board";
 
 interface IBoard {
   _id: string;
@@ -48,7 +47,7 @@ const CardList = () => {
     const loadBoards = async () => {
       try {
         setIsLoading(true);
-        const boardsData = await fetchBoards();
+        const boardsData = await boardsApi.getAll();
         setBoards(boardsData);
         setError(null);
       } catch (error) {
@@ -64,13 +63,11 @@ const CardList = () => {
   const createBoard = async () => {
     try {
       setIsLoading(true);
-      const { data } = await axios.post<IBoard>(API_ENDPOINTS.BOARDS, formData);
-
-      setBoards([...boards, data]);
-      setIsOpen(false);
+      const response = await axios.post("/api/boards", formData); // Adjust the endpoint
+      setBoards((prevBoards) => [...prevBoards, response.data as IBoard]);
       setFormData({ title: "", description: "", background: "#0079bf" });
+      setIsOpen(false);
     } catch (error) {
-      console.error("Error creating board:", error);
       setError("Failed to create board");
     } finally {
       setIsLoading(false);
@@ -104,7 +101,7 @@ const CardList = () => {
             <DialogHeader>
               <DialogTitle>Create New Board</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 ">
+            <div className="space-y-4">
               <Input
                 placeholder="Board title"
                 value={formData.title}
@@ -133,7 +130,7 @@ const CardList = () => {
                 ))}
               </div>
               <Button
-                className="w-full "
+                className="w-full"
                 onClick={createBoard}
                 disabled={isLoading || !formData.title.trim()}
               >

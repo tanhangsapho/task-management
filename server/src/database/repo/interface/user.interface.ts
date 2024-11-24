@@ -14,6 +14,18 @@ export interface IUser extends Document {
   comparePassword?(password: string): Promise<boolean>;
 }
 
+export interface IUserDTO {
+  userId: string;
+  email: string;
+  githubId?: string;
+  googleId?: string;
+  photos?: string;
+  name: string;
+  isVerified: boolean;
+  role: string;
+  lastLogin: Date;
+}
+
 export interface IGoogleProfile {
   id: string;
   displayName: string;

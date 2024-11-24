@@ -1,21 +1,23 @@
+"use client"; // Ensure this is marked as a Client Component
+
+import React from "react";
 import { Github } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
-import { useAuth } from "@/context/AuthContext";
+import { authAPI } from "@/lib/api/auth";
 
 interface LoginProps {
   logoText?: string;
 }
+
 export function Login({ logoText = "TM" }: LoginProps) {
-  const { login } = useAuth();
+  function handleGoogleLogin() {
+    authAPI.initiateGoogleAuth(); // Function to initiate Google Login
+  }
 
-  const handleGoogleLogin = () => {
-    login("google");
-  };
-
-  const handleGithubLogin = () => {
-    login("github");
-  };
+  function handleGithubLogin() {
+    authAPI.initiateGithubAuth(); // Function to initiate GitHub Login
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-white">

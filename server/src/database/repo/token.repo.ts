@@ -7,6 +7,12 @@ export class TokenRepository {
   async createRefreshToken(userId: string): Promise<IRefreshToken> {
     const token = crypto.randomBytes(40).toString("hex");
     const expires = new Date();
+    let isUnique = false;
+
+    while (!isUnique) {
+      const token = crypto.randomBytes(40).toString("hex");
+      isUnique = !(await RefreshToken.findOne({ token }));
+    }
     expires.setDate(expires.getDate() + 7);
 
     return RefreshToken.create({

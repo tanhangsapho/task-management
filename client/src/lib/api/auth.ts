@@ -1,71 +1,61 @@
-import axios from "axios";
-export const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import axiosInstance from "./axiosInstance";
+import Cookies from "js-cookie";
 
 export interface AuthResponse {
   user: {
     id: string;
     email: string;
     name: string;
-    picture?: string;
+    photos?: string;
   };
   accessToken: string;
   refreshToken: string;
 }
-function getCookie(name: string) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(";").shift();
-}
+
 class AuthAPI {
-  private baseUrl = `${API_URL}/api/auth`;
+  private baseUrl = "/api/auth";
 
   async getCurrentUser() {
-    const token = getCookie("accessToken");
-    if (!token) {
-      throw new Error("No access token found. User is not logged in.");
-    }
-    const response = await axios.get<AuthResponse>(
-      `${API_URL}/api/user/profile `,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true,
-      }
-    );
+    console.log("Access Token Before Request:", Cookies.get("accessToken"));
+    const response = await axiosInstance.get<AuthResponse>("/api/user/profile");
+    console.log(response.data);
     return response.data;
   }
 
   async logout() {
-    await axios.post(`${this.baseUrl}/logout`, {}, { withCredentials: true });
+    await axiosInstance.post(`${this.baseUrl}/logout`, {});
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
   }
 
   async refreshToken() {
-    const response = await axios.post<AuthResponse>(
-      `${this.baseUrl}/refresh-token`,
-      {},
-      { withCredentials: true }
-    );
-    return response.data;
+    try {
+      const response = await axiosInstance.post<AuthResponse>(
+        `${this.baseUrl}/refresh-token`,
+        {},
+        { withCredentials: true }
+      );
+      console.log("Refreshed Token Response:", response.data);
+      if (response.data.accessToken) {
+        Cookies.set("accessToken", response.data.accessToken);
+        return response.data.accessToken;
+      }
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      this.logout();
+      throw error;
+    }
   }
 
   initiateGoogleAuth() {
-    window.location.href = `${this.baseUrl}/google`;
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}${this.baseUrl}/google`;
   }
 
   initiateGithubAuth() {
-    window.location.href = `${this.baseUrl}/github`;
-  }
-
-  async handleAuthCallback(provider: "google" | "github", code: string) {
-    const response = await axios.get<AuthResponse>(
-      `${this.baseUrl}/${provider}/callback`,
-      {
-        params: { code },
-        withCredentials: true,
-      }
-    );
-    return response.data;
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}${this.baseUrl}/github`;
   }
 }
 

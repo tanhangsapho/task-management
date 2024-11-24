@@ -1,4 +1,4 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import axiosInstance from "./axiosInstance";
 
 export interface IBoard {
   _id: string;
@@ -10,33 +10,23 @@ export interface IBoard {
   updatedAt: Date;
 }
 
-export const API_ENDPOINTS = {
-  BOARDS: `${API_URL}/api/board`,
-  BOARD: (id: string) => `/api/boards/${id}`,
-} as const;
-
 export const boardsApi = {
   getAll: async () => {
-    const response = await axios.get<IBoard[]>(API_ENDPOINTS.BOARDS);
+    const response = await axiosInstance.get<IBoard[]>("/api/board");
     return response.data;
   },
 
   getById: async (id: string) => {
-    const response = await axios.get<IBoard>(API_ENDPOINTS.BOARD(id));
+    const response = await axiosInstance.get<IBoard>(`/api/boards/${id}`);
     return response.data;
   },
 
   create: async (data: IBoard) => {
-    const response = await axios.post<IBoard>(API_ENDPOINTS.BOARDS, data);
+    const response = await axiosInstance.post<IBoard>("/api/board", data);
     return response.data;
   },
 
-  // update: async (id: string, data: UpdateBoardDTO) => {
-  //   const response = await axios.patch<IBoard>(API_ENDPOINTS.BOARD(id), data);
-  //   return response.data;
-  // },
-
   delete: async (id: string) => {
-    await axios.delete(API_ENDPOINTS.BOARD(id));
+    await axiosInstance.delete(`/api/boards/${id}`);
   },
 };
